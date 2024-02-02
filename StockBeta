@@ -1,0 +1,59 @@
+#To Identify Beta of a stock. 
+# Replace stock_symbol code with the one you want to calcuate in line 27. 
+
+install.packages("quantmod")
+library(quantmod)
+
+# Function to get stock prices
+getStockPrices <- function(symbol, start_date, end_date) {
+  stock_data <- getSymbols(symbol, src = "yahoo", from = start_date, to = end_date, auto.assign = FALSE)
+  stock_prices <- Cl(stock_data)
+  return(stock_prices)
+}
+
+# Function to calculate beta
+calculateBeta <- function(stock_returns, market_returns) {
+  lm_result <- lm(stock_returns ~ market_returns)
+  beta <- coef(lm_result)[2]
+  return(beta)
+}
+
+# Function to calculate average returns
+calculateAverageReturns <- function(returns) {
+  average_return <- mean(returns)
+  return(average_return)
+}
+
+stock_symbol <- "META" 
+market_symbol <- "^GSPC"  
+
+# Set start and end dates for historical data
+start_date <- "2019-01-01"
+end_date <- "2023-12-31"  
+
+#Sys.Date()
+
+# Get stock and market prices
+stock_prices <- getStockPrices(stock_symbol, start_date, end_date)
+market_prices <- getStockPrices(market_symbol, start_date, end_date)
+
+# Calculate daily returns
+stock_returns <- monthlyReturn(stock_prices)
+market_returns <- monthlyReturn(market_prices)
+
+# Remove NAs
+returns_data <- na.omit(merge(stock_returns, market_returns))
+
+
+
+# Calculate beta
+stock_beta <- calculateBeta(returns_data[, 1], returns_data[, 2])
+
+# Calculate average returns for the market
+average_market_return <- calculateAverageReturns(returns_data[, 2])
+
+
+# Print the beta
+cat("Beta (5Y Monthly) for", stock_symbol, "relative to", market_symbol, ":", stock_beta, "\n")
+
+
